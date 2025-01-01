@@ -1,8 +1,14 @@
 // set up canvas
 const canvas = document.getElementById("game_canvas");
 const context = canvas.getContext("2d");
-canvas.width = 271;
-canvas.height = 392;
+context.imageSmoothingEnabled = true; // Enable image smoothing
+context.imageSmoothingQuality = "high"; // Use high-quality interpolation
+// canvas.width = 271;
+// canvas.height = 392;
+canvas.width = 813;
+canvas.height = 1176;
+canvas.width = 1040;
+canvas.height = 1568;
 
 // load donut images
 const donutImages = [];
@@ -13,31 +19,16 @@ const imagePaths = [
   "img/blue_donut.png",
 ];
 
-let imagesLoaded = 0;
-
 imagePaths.forEach((path, index) => {
   const img = new Image();
   img.src = path;
-  img.onload = () => {
-    imagesLoaded++;
-    if (imagesLoaded === imagePaths.length) {
-      // All images are loaded, start the game
-      requestAnimationFrame(loop);
-    }
-  };
   donutImages.push(img);
 });
-
-// imagePaths.forEach((path, index) => {
-//   const img = new Image();
-//   img.src = path;
-//   donutImages.push(img);
-// });
 
 console.log(donutImages);
 
 // define variables for game
-const grid = 32;
+const grid = 128;
 
 const level1 = [
   ["P", "P", "B", "B", "C", "C", "W", "W"],
@@ -111,43 +102,16 @@ function getClosestBubble(obj, activeState = false) {
   return (
     closestBubbles
       // turn array of bubbles into array of distances
-      .map(
-        ((bubble) => {
-          return {
-            distance: getDistance(obj, bubble),
-            bubble,
-          };
-        }).sort((a, b) => a.distance - b.distance)[0].bubble
-      )
+      .map((bubble) => {
+        return {
+          distance: getDistance(obj, bubble),
+          bubble,
+        };
+      })
+      .sort((a, b) => a.distance - b.distance)[0].bubble
   );
 }
 
-// // create the bubble grid. passing an image will create an active bubble
-// function createBubble(x, y, img) {
-//   const row = Math.floor(y / grid);
-//   const col = Math.floor(x / grid);
-
-//   // bubbles on odd rows need to start half-way on the grid
-//   const startX = row % 2 === 0 ? 0 : 0.5 * grid;
-
-//   // because we are drawing circles we need the x/y position
-//   // to be the center of the circle instead of the top-left
-//   // corner like you would for a square
-//   const center = grid * 0.5;
-
-//   bubbles.push({
-//     x: wallSize + (grid + bubbleGap) * col + startX + center,
-
-//     // the bubbles are closer on the y axis so we subtract 4 on every
-//     // row
-//     y: wallSize + (grid + bubbleGap - 4) * row + center,
-
-//     radius: grid / 2,
-//     img: img, // use the donut image
-//     active: img ? true : false,
-//   });
-// }
-//////////
 // Update `createBubble` to correctly draw the image
 function createBubble(x, y, img) {
   const row = Math.floor(y / grid);
@@ -164,7 +128,6 @@ function createBubble(x, y, img) {
     active: img ? true : false,
   });
 }
-/////////
 
 // get all bubbles that touch the passed in bubble
 function getNeighbors(bubble) {
@@ -196,7 +159,7 @@ function getNeighbors(bubble) {
       radius: bubble.radius,
     };
     const neighbor = getClosestBubble(newBubble, true);
-    if (neighbor && ne !== bubble && !neighbors.includes(neighbor)) {
+    if (neighbor && neighbor !== bubble && !neighbors.includes(neighbor)) {
       neighbors.push(neighbor);
     }
   }
@@ -208,7 +171,7 @@ function removeMatch(targetBubble) {
   const matches = [targetBubble];
 
   bubbles.forEach((bubble) => (bubble.processed = false));
-  targetBubble, (processed = true);
+  targetBubble.processed = true;
 
   //loop over neighbors of matching images for more matches
   let neighbors = getNeighbors(targetBubble);
@@ -218,7 +181,7 @@ function removeMatch(targetBubble) {
     if (!neighbor.processed) {
       neighbor.processed = true;
 
-      if (neighbor.color === targetBubble.img) {
+      if (neighbor.img === targetBubble.img) {
         matches.push(neighbor);
         neighbors = neighbors.concat(getNeighbors(neighbor));
       }
@@ -232,30 +195,30 @@ function removeMatch(targetBubble) {
   }
 }
 
-// make floating bubbles drop down the screen
-function dropFloatingBubbles() {
-  const activeBubbles = bubbles.filter((bubble) => bubble.active);
-  activeBubbles.forEach((bubble) => (bubble.processed = false));
+// make floating donuts drop down the screen
+function dropFloatingDonuts() {
+  const activeDonuts = bubbles.filter((bubble) => bubble.active); // Assuming donuts is the array of active donut objects
+  activeDonuts.forEach((bubble) => (bubble.processed = false));
 
-  // start at bubbles touching top border of canvas
-  let neighbors = activeBubbles.filter((bubble) => bubble.y - grid <= wallSize);
+  // Start with donuts touching the top border of the canvas
+  let neighbors = activeDonuts.filter((bubble) => bubble.y - grid <= wallSize);
 
-  // process all bubbles that form a chain with top border bubbles
+  // Process all donuts that form a chain with the top border donuts
   for (let i = 0; i < neighbors.length; i++) {
     let neighbor = neighbors[i];
 
     if (!neighbor.processed) {
       neighbor.processed = true;
-      neighbors = neighbors.concat(getNeighbors(neighbor));
+      neighbors = neighbors.concat(getNeighbors(neighbor)); // Define how neighbors are identified
     }
   }
 
-  // any bubble that is not processed and doesn't touch the top border
-  activeBubbles
+  // Any donut that isn't processed and doesn't touch the top border
+  activeDonuts
     .filter((bubble) => !bubble.processed)
     .forEach((bubble) => {
-      bubble.active = false;
-      // create a particle bubble that falls down the screen
+      bubble.active = false; // Deactivate donuts that are no longer active
+      // Create a new particle for each donut that "falls"
       particles.push({
         x: bubble.x,
         y: bubble.y,
@@ -287,7 +250,7 @@ const curBubble = {
   radius: grid * 0.5, // a circles radius is half the width (diameter)
 
   //how fast the bubble should go in either the x or y direction
-  speed: 8,
+  speed: 32,
 
   // bubble velocity
   dx: 0,
@@ -320,7 +283,9 @@ function handleCollision(bubble) {
   bubble.active = true;
   getNewBubble();
   removeMatch(bubble);
-  dropFloatingBubbles();
+  // dropFloatingBubbles();
+  dropFloatingDonuts();
+  console.log(particles);
 }
 
 // game loop
@@ -347,7 +312,7 @@ function loop() {
     curBubble.dx *= -1;
   } else if (curBubble.x + grid * 0.5 > canvas.width - wallSize) {
     curBubble.x = canvas.width - wallSize - grid * 0.5;
-    curBubble.dx * -(-1);
+    curBubble.dx *= -1;
   }
 
   //check to see if bubble collides with top border of canvas
@@ -363,34 +328,26 @@ function loop() {
 
     if (bubble.active && collides(curBubble, bubble)) {
       const closestBubble = getClosestBubble(curBubble);
-      //   if (!closestBubble) {
-      //     window.alert("Game Over");
-      //     window.location.reload();
-      //   }
+      // if (!closestBubble) {
+      //   window.alert("Game Over");
+      //   window.location.reload();
+      // }
 
       if (closestBubble) {
         handleCollision(closestBubble);
       }
     }
   }
-
   // move bubble particles
   particles.forEach((particle) => {
-    particle.y += 8;
+    particle.y += 24;
   });
 
   // remove particles that fall off screen
   particles = particles.filter(
-    (particles) => particles.y < canvas.height - gird * 0.5
+    (particles) => particles.y < canvas.height - grid * 0.5
   );
 
-  //draw walls
-  context.fillStyle = "black";
-  context.fillRect(0, 0, canvas.width, wallSize);
-  context.fillRect(0, 0, wallSize, canvas.height);
-  context.fillRect(canvas.width - wallSize, 0, wallSize, canvas.height);
-
-  //////////////////
   // Draw bubbles in the `loop` function
   bubbles.forEach((bubble) => {
     if (bubble.active) {
@@ -403,17 +360,19 @@ function loop() {
       );
     }
   });
-  /////////////////
 
-  //// draw bubbles and particles
-  //   bubbles.concat(
-  //     particles.forEach((bubble) => {
-  //       if (!bubble.active) return;
-  //       context.drawImage = bubble.img;
-
-  //       //////////// did not include creating circles
-  //     })
-  //   );
+  // draw bubbles and particles
+  particles.forEach((particle) => {
+    if (particle.active) {
+      context.drawImage(
+        particle.img,
+        particle.x - grid / 2,
+        particle.y - grid / 2,
+        grid,
+        grid
+      );
+    }
+  });
 
   //draw fire arrow to center of rotation/bubble
   // use save to start and restore when done
@@ -427,15 +386,15 @@ function loop() {
   context.translate(0, -grid * 0.5 * 4.5);
 
   // draw arrow
-  context.strokeStyle = "black";
-  context.lineWidth = 2;
+  context.strokeStyle = "#87418c";
+  context.lineWidth = 6;
   context.beginPath();
   context.moveTo(0, 0);
   context.lineTo(0, grid * 2);
   context.moveTo(0, 0);
-  context.lineTo(-10, grid * 0.4);
+  context.lineTo(-14, grid * 0.4);
   context.moveTo(0, 0);
-  context.lineTo(10, grid * 0.4);
+  context.lineTo(14, grid * 0.4);
   context.stroke();
 
   context.restore();
