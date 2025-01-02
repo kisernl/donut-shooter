@@ -1,8 +1,6 @@
 // set up canvas
 const canvas = document.getElementById("game_canvas");
 const context = canvas.getContext("2d");
-context.imageSmoothingEnabled = true; // Enable image smoothing
-context.imageSmoothingQuality = "high"; // Use high-quality interpolation
 // canvas.width = 271;
 // canvas.height = 392;
 canvas.width = 813;
@@ -24,8 +22,6 @@ imagePaths.forEach((path, index) => {
   img.src = path;
   donutImages.push(img);
 });
-
-console.log(donutImages);
 
 // define variables for game
 const grid = 128;
@@ -51,6 +47,7 @@ const bubbles = [];
 let particles = [];
 
 const donutSize = 32;
+let gameOver = false;
 
 // HELPER FUNCTIONS
 // helper function to convert deg to radians
@@ -283,16 +280,79 @@ function handleCollision(bubble) {
   bubble.active = true;
   getNewBubble();
   removeMatch(bubble);
-  // dropFloatingBubbles();
   dropFloatingDonuts();
-  console.log(particles);
 }
+
+//
+function checkWinCondition() {
+  const remainingDonuts = bubbles.filter(
+    (bubble) => bubble.active && bubble !== curBubble
+  );
+  if (remainingDonuts.length === 0) {
+    displayWinMessage();
+  }
+}
+
+// Display "You Win" message
+function displayWinMessage() {
+  // Set font properties
+  context.font = "48px Arial"; // Font size and type
+  context.fillStyle = "#87418c"; // Text color
+  context.textAlign = "center"; // Align the text to the center
+  context.textBaseline = "middle"; // Vertically align text to the middle
+
+  // Get the canvas center position
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+
+  // Draw the "You Win!" message
+  context.fillText("You Win!", centerX, centerY);
+}
+
+// Display "You Lose" message
+function displayLoseMessage() {
+  // Set font properties
+  context.font = "48px Arial"; // Font size and type
+  context.fillStyle = "#87418c"; // Text color
+  context.textAlign = "center"; // Align the text to the center
+  context.textBaseline = "middle"; // Vertically align text to the middle
+
+  // Get the canvas center position
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+
+  // Draw the "You Lose!" message
+  context.fillText("GAME OVER!... loser.", centerX, centerY);
+}
+
+function endGame() {
+  displayLoseMessage();
+  gameOver = true;
+}
+
+// drawGameOverText(context) {
+//   context.save();
+//   context.shadowOffsetX = 2;
+//   context.shadowOffsetY = 2;
+//   context.shadowColor = "white";
+//   if (this.gameOver) {
+//     context.textAlign = "center";
+//     context.font = "500 100px DotGothic16";
+//     context.fillText("GAME OVER!", this.width * 0.5, this.height * 0.4);
+//     context.font = "500 30px DotGothic16";
+//     context.fillText(
+//       `Press "R" to try again`,
+//       this.width * 0.5,
+//       this.height * 0.47
+//     );
+//   }
+//   context.restore();
+// }
 
 // game loop
 function loop() {
   requestAnimationFrame(loop);
   context.clearRect(0, 0, canvas.width, canvas.height);
-
   // move shooting arrow
   shootDeg = shootDeg + degToRad(2) * shootDir;
 
@@ -328,10 +388,11 @@ function loop() {
 
     if (bubble.active && collides(curBubble, bubble)) {
       const closestBubble = getClosestBubble(curBubble);
-      // if (!closestBubble) {
-      //   window.alert("Game Over");
-      //   window.location.reload();
-      // }
+      if (!closestBubble) {
+        endGame();
+      }
+
+      console.log(gameOver);
 
       if (closestBubble) {
         handleCollision(closestBubble);
@@ -340,7 +401,7 @@ function loop() {
   }
   // move bubble particles
   particles.forEach((particle) => {
-    particle.y += 24;
+    particle.y += 32;
   });
 
   // remove particles that fall off screen
@@ -407,22 +468,22 @@ function loop() {
     grid,
     grid
   );
+
+  checkWinCondition();
 }
 
 // listen for keyboard events to move fire arrow
 document.addEventListener("keydown", (e) => {
-  console.log(`Key pressed: ${e.key}`);
   if (e.key === "ArrowLeft") {
     shootDir = -1;
   } else if (e.key === "ArrowRight") {
     shootDir = 1;
   }
 
-  if (e.key === " " && curBubble.dx === 0 && curBubble.dy === 0) {
+  if (e.key === " " && curBubble.dx === 0 && curBubble.dy === 0 && !gameOver) {
     //convert an angle to x/y
     curBubble.dx = Math.sin(shootDeg) * curBubble.speed;
     curBubble.dy = -Math.cos(shootDeg) * curBubble.speed;
-    console.log("Fired:", curBubble.dx, curBubble.dy); // Debug log
   }
 });
 
@@ -440,4 +501,5 @@ document.addEventListener("keyup", (e) => {
 0;
 
 // start the game
+
 requestAnimationFrame(loop);
