@@ -1,27 +1,20 @@
-import DonutRow from "./donutRow.js";
-
 class Game {
   constructor(canvas) {
     this.canvas = canvas;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
-    this.rowHeight = 10;
 
-    // Create the top row
-    this.regularRow = new DonutRow(this, this.rowHeight, 0);
+    this.gameOver = false;
 
-    // Create the offset row, positioned just below the top row
-    this.offsetRow = new DonutRow(
-      this,
-      this.rowHeight - 4 + this.donutSize,
-      this.donutSize / 2
-    );
+    this.grid = 128;
+
+    this.bubbleGap = 1;
+    this.wallSize = 4;
+    this.bubbles = [];
+    let particles = [];
   }
 
-  render(context) {
-    this.regularRow.draw(context);
-    this.offsetRow.draw(context);
-  }
+  render() {}
 }
 
 export default Game;

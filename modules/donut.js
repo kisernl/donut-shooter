@@ -1,38 +1,22 @@
-class Donut {
-  constructor(game, positionX, positionY) {
-    this.game = game;
-    this.width = game.donutSize || 48; // Default size if not provided
-    this.height = game.donutSize || 48;
-    this.x = positionX;
-    this.y = positionY;
-    this.markedForDeletion = false;
+// load donut images
+const donutImages = [];
+const imagePaths = [
+  "img/pink_donut.png",
+  "img/white_donut.png",
+  "img/chocolate_donut.png",
+  "img/blue_donut.png",
+];
 
-    // Load donut images
-    const donutImages = [];
-    const imagePaths = [
-      "img/pink_donut.png",
-      "img/white_donut.png",
-      "img/chocolate_donut.png",
-      "img/blue_donut.png",
-    ];
+imagePaths.forEach((path, index) => {
+  const img = new Image();
+  img.src = path;
+  donutImages.push(img);
+});
 
-    imagePaths.forEach((path) => {
-      const img = new Image();
-      img.src = path;
-      donutImages.push(img);
-    });
-
-    const randomDonut = Math.floor(Math.random() * donutImages.length);
-    this.image = donutImages[randomDonut];
-  }
-
-  draw(context) {
-    context.drawImage(this.image, this.x, this.y, this.width, this.height);
-  }
-
-  update() {
-    // Placeholder for future updates
-  }
-}
-
-export default Donut;
+const donutMap = {
+  P: donutImages[0], // pink donut
+  W: donutImages[1], // white donut
+  C: donutImages[2], // chocolate donut
+  B: donutImages[3], // blue donut
+};
+const donuts = Object.values(donutMap);
