@@ -1,6 +1,5 @@
-// load donut images
-const donutImages = [];
-const imagePaths = [
+export const donutImages = [];
+export const imagePaths = [
   "img/pink_donut.png",
   "img/white_donut.png",
   "img/chocolate_donut.png",
@@ -13,10 +12,10 @@ imagePaths.forEach((path, index) => {
   donutImages.push(img);
 });
 
-const donutMap = {
+export const donutMap = {
   P: donutImages[0], // pink donut
   W: donutImages[1], // white donut
   C: donutImages[2], // chocolate donut
   B: donutImages[3], // blue donut
 };
-const donuts = Object.values(donutMap);
+export const donuts = Object.values(donutMap);
