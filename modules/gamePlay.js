@@ -63,130 +63,130 @@ export function dropFloatingDonuts() {
 
 // game loop
 export function loop() {
-  requestAnimationFrame(loop);
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  // move shooting arrow
-  shootDeg = shootDeg + degToRad(2) * shootDir;
+  if (!gameOver) {
+    requestAnimationFrame(loop);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    // move shooting arrow
+    shootDeg = shootDeg + degToRad(2) * shootDir;
 
-  if (shootDeg < minDeg) {
-    shootDeg = minDeg;
-  } else if (shootDeg > maxDeg) {
-    shootDeg = maxDeg;
-  }
+    if (shootDeg < minDeg) {
+      shootDeg = minDeg;
+    } else if (shootDeg > maxDeg) {
+      shootDeg = maxDeg;
+    }
 
-  // move current bubble by it's velocity
-  curBubble.x += curBubble.dx;
-  curBubble.y += curBubble.dy;
+    // move current bubble by it's velocity
+    curBubble.x += curBubble.dx;
+    curBubble.y += curBubble.dy;
 
-  // prevent bubble from going thorough walls by changing its velocity
-  if (curBubble.x - grid * 0.5 < wallSize) {
-    curBubble.x = wallSize + grid * 0.5;
-    curBubble.dx *= -1;
-  } else if (curBubble.x + grid * 0.5 > canvas.width - wallSize) {
-    curBubble.x = canvas.width - wallSize - grid * 0.5;
-    curBubble.dx *= -1;
-  }
+    // prevent bubble from going thorough walls by changing its velocity
+    if (curBubble.x - grid * 0.5 < wallSize) {
+      curBubble.x = wallSize + grid * 0.5;
+      curBubble.dx *= -1;
+    } else if (curBubble.x + grid * 0.5 > canvas.width - wallSize) {
+      curBubble.x = canvas.width - wallSize - grid * 0.5;
+      curBubble.dx *= -1;
+    }
 
-  //check to see if bubble collides with top border of canvas
-  if (curBubble.y - grid * 0.5 < wallSize) {
-    //make the closest inactive bubble active
-    const closestBubble = getClosestBubble(curBubble);
-    handleCollision(closestBubble);
-  }
-
-  // check to see if bubble collides with another bubble
-  for (let i = 0; i < bubbles.length; i++) {
-    const bubble = bubbles[i];
-
-    if (bubble.active && collides(curBubble, bubble)) {
+    //check to see if bubble collides with top border of canvas
+    if (curBubble.y - grid * 0.5 < wallSize) {
+      //make the closest inactive bubble active
       const closestBubble = getClosestBubble(curBubble);
-      if (!closestBubble) {
-        endGame();
+      handleCollision(closestBubble);
+    }
+
+    // move bubble particles
+    particles.forEach((particle) => {
+      particle.y += 32;
+    });
+
+    // remove particles that fall off screen
+    particles = particles.filter(
+      (particles) => particles.y < canvas.height - grid * 0.5
+    );
+
+    // Draw bubbles in the `loop` function
+    bubbles.forEach((bubble) => {
+      if (bubble.active) {
+        context.drawImage(
+          bubble.img,
+          bubble.x - grid / 2,
+          bubble.y - grid / 2,
+          grid,
+          grid
+        );
       }
+    });
 
-      console.log(gameOver);
+    // draw bubbles and particles
+    particles.forEach((particle) => {
+      if (particle.active) {
+        context.drawImage(
+          particle.img,
+          particle.x - grid / 2,
+          particle.y - grid / 2,
+          grid,
+          grid
+        );
+      }
+    });
 
-      if (closestBubble) {
-        handleCollision(closestBubble);
+    // check to see if bubble collides with another bubble
+    for (let i = 0; i < bubbles.length; i++) {
+      const bubble = bubbles[i];
+
+      if (bubble.active && collides(curBubble, bubble)) {
+        const closestBubble = getClosestBubble(curBubble);
+        if (!closestBubble) {
+          gameOver = true;
+          endGame();
+        }
+        if (closestBubble) {
+          handleCollision(closestBubble);
+        }
       }
     }
+
+    //draw fire arrow to center of rotation/bubble
+    // use save to start and restore when done
+    context.save();
+
+    // move to cent of rotation/bubble
+    context.translate(curBubblePos.x, curBubblePos.y);
+    context.rotate(shootDeg);
+
+    // move to to top-left corner of fire arrow
+    context.translate(0, -grid * 0.5 * 4.5);
+
+    // draw arrow
+    context.strokeStyle = "#87418c";
+    context.lineWidth = 6;
+    context.beginPath();
+    context.moveTo(0, 0);
+    context.lineTo(0, grid * 2);
+    context.moveTo(0, 0);
+    context.lineTo(-14, grid * 0.4);
+    context.moveTo(0, 0);
+    context.lineTo(14, grid * 0.4);
+    context.stroke();
+
+    context.restore();
+
+    // draw current bubble
+    context.drawImage(
+      curBubble.img,
+      curBubble.x - grid / 2,
+      curBubble.y - grid / 2,
+      grid,
+      grid
+    );
+
+    checkWinCondition();
   }
-  // move bubble particles
-  particles.forEach((particle) => {
-    particle.y += 32;
-  });
-
-  // remove particles that fall off screen
-  particles = particles.filter(
-    (particles) => particles.y < canvas.height - grid * 0.5
-  );
-
-  // Draw bubbles in the `loop` function
-  bubbles.forEach((bubble) => {
-    if (bubble.active) {
-      context.drawImage(
-        bubble.img,
-        bubble.x - grid / 2,
-        bubble.y - grid / 2,
-        grid,
-        grid
-      );
-    }
-  });
-
-  // draw bubbles and particles
-  particles.forEach((particle) => {
-    if (particle.active) {
-      context.drawImage(
-        particle.img,
-        particle.x - grid / 2,
-        particle.y - grid / 2,
-        grid,
-        grid
-      );
-    }
-  });
-
-  //draw fire arrow to center of rotation/bubble
-  // use save to start and restore when done
-  context.save();
-
-  // move to cent of rotation/bubble
-  context.translate(curBubblePos.x, curBubblePos.y);
-  context.rotate(shootDeg);
-
-  // move to to top-left corner of fire arrow
-  context.translate(0, -grid * 0.5 * 4.5);
-
-  // draw arrow
-  context.strokeStyle = "#87418c";
-  context.lineWidth = 6;
-  context.beginPath();
-  context.moveTo(0, 0);
-  context.lineTo(0, grid * 2);
-  context.moveTo(0, 0);
-  context.lineTo(-14, grid * 0.4);
-  context.moveTo(0, 0);
-  context.lineTo(14, grid * 0.4);
-  context.stroke();
-
-  context.restore();
-
-  // draw current bubble
-  context.drawImage(
-    curBubble.img,
-    curBubble.x - grid / 2,
-    curBubble.y - grid / 2,
-    grid,
-    grid
-  );
-
-  checkWinCondition();
 }
 
 export function endGame() {
   displayLoseMessage();
-  gameOver = true;
 }
 
 // listen for keyboard events to move fire arrow
