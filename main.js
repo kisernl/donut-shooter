@@ -1,6 +1,6 @@
 import { donutMap } from "./modules/donut.js";
 import { grid } from "./modules/constants.js";
-import { level1 } from "./modules/levels.js";
+import { levels } from "./modules/levels.js";
 import { createBubble } from "./modules/gameFunctions.js";
 import { loop } from "./modules/gamePlay.js";
 import { context, canvas } from "./modules/gameCanvas.js";
@@ -18,6 +18,32 @@ import { context, canvas } from "./modules/gameCanvas.js";
 // // start the game
 // requestAnimationFrame(loop);
 // }
+
+export let gameState = {
+  currentLevel: 0,
+};
+
+export function startLevel() {
+  const level = levels[gameState.currentLevel];
+  if (!level) {
+    console.error(`Level ${gameState.currentLevel} does not exist!`);
+    return;
+  }
+
+  // Clear the canvas and bubbles array if needed
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  //bubbles.length = 0; // Clear any existing bubbles
+
+  // Populate the grid with bubbles for the current level
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < (row % 2 === 0 ? 8 : 7); col++) {
+      const donut = level[row]?.[col];
+      createBubble(col * grid, row * grid, donutMap[donut]);
+    }
+  }
+
+  window.requestAnimationFrame(loop); // Restart the game loop
+}
 
 window.addEventListener("load", function () {
   let gameStarted = false;
@@ -52,28 +78,71 @@ window.addEventListener("load", function () {
     context.restore();
   }
 
+  // FontFace API to check if the font is loaded
+  const font = new FontFace(
+    "Bubblegum Sans",
+    "url(assets/fonts/BubblegumSans-Regular.ttf)"
+  );
+  font
+    .load()
+    .then(() => {
+      document.fonts.add(font);
+      // Once the font is loaded, start the game by showing the welcome message
+      drawWelcomeMessage(context);
+    })
+    .catch((error) => {
+      console.error("Font loading failed: ", error);
+      // If font fails to load, proceed anyway
+      drawWelcomeMessage(context);
+    });
+
   // Animation loop
-  function startGame() {
-    if (gameStarted) {
-      // fill the grid with inactive bubbles
-      for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < (row % 2 === 0 ? 8 : 7); col++) {
-          //if level has a bubble at location, create an active bubble rather than inactive one
-          const donut = level1[row]?.[col];
-          createBubble(col * grid, row * grid, donutMap[donut]);
-        }
-      }
-      window.requestAnimationFrame(loop);
-    } else {
-      drawWelcomeMessage();
-    }
-  }
+  // function startGame() {
+  //   if (gameStarted) {
+  //     let level = levels[0];
+  //     // fill the grid with inactive bubbles
+  //     for (let row = 0; row < 10; row++) {
+  //       for (let col = 0; col < (row % 2 === 0 ? 8 : 7); col++) {
+  //         //if level has a bubble at location, create an active bubble rather than inactive one
+  //         const donut = level[row]?.[col];
+  //         createBubble(col * grid, row * grid, donutMap[donut]);
+  //       }
+  //     }
+  //     window.requestAnimationFrame(loop);
+  //   } else {
+  //     drawWelcomeMessage();
+  //   }
+  // }
+
+  // export function startGame() {
+  //   const level = levels[currentLevel];
+  //   if (!level) {
+  //     console.error(`Level ${currentLevel} does not exist!`);
+  //     return;
+  //   }
+
+  //   // Clear the canvas and bubbles array if needed
+  //   context.clearRect(0, 0, canvas.width, canvas.height);
+  //   //bubbles.length = 0; // Clear any existing bubbles
+
+  //   // Populate the grid with bubbles for the current level
+  //   for (let row = 0; row < 10; row++) {
+  //     for (let col = 0; col < (row % 2 === 0 ? 8 : 7); col++) {
+  //       const donut = level[row]?.[col];
+  //       createBubble(col * grid, row * grid, donutMap[donut]);
+  //     }
+  //   }
+
+  //   window.requestAnimationFrame(loop); // Restart the game loop
+  // }
+
+  if (gameStarted) startLevel();
 
   // Start the game on Enter key press
   window.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !gameStarted) {
       gameStarted = true;
-      startGame(); // Start the animation loop
+      startLevel(); // Start the animation loop
     }
   });
 

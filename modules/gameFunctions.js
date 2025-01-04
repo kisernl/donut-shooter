@@ -3,8 +3,6 @@ import {
   bubbles,
   wallSize,
   bubbleGap,
-  minDeg,
-  maxDeg,
   curBubble,
   curBubblePos,
 } from "./constants.js";
@@ -17,7 +15,6 @@ import {
 } from "./utils.js";
 import { donuts } from "./donut.js";
 import { dropFloatingDonuts } from "./gamePlay.js";
-import { displayWinMessage } from "./displayMessages.js";
 
 // find closest bubble that collides with object
 export function getClosestBubble(obj, activeState = false) {
@@ -145,11 +142,23 @@ export function handleCollision(bubble) {
 }
 
 //
+// export function checkWinCondition() {
+//   const remainingDonuts = bubbles.filter(
+//     (bubble) => bubble.active && bubble !== curBubble
+//   );
+//   if (remainingDonuts.length === 0) {
+//     displayWinMessage();
+//   }
+// }
+
 export function checkWinCondition() {
   const remainingDonuts = bubbles.filter(
     (bubble) => bubble.active && bubble !== curBubble
   );
-  if (remainingDonuts.length === 0) {
-    displayWinMessage();
-  }
+  if (remainingDonuts.length === 0) return true;
+}
+
+export function levelReset() {
+  curBubble.dx = 0;
+  curBubble.dy = 0;
 }

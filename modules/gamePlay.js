@@ -1,4 +1,5 @@
 import { context, canvas } from "./gameCanvas.js";
+import { startLevel, gameState } from "../main.js";
 import { degToRad, collides } from "./utils.js";
 import {
   minDeg,
@@ -14,8 +15,14 @@ import {
   getClosestBubble,
   handleCollision,
   getNeighbors,
+  levelReset,
 } from "./gameFunctions.js";
-import { displayWinMessage, displayLoseMessage } from "./displayMessages.js";
+import {
+  displayWinMessage,
+  displayLoseMessage,
+  displayFinalWinMessage,
+} from "./displayMessages.js";
+import { levels } from "./levels.js";
 
 let particles = [];
 
@@ -26,6 +33,7 @@ let shootDeg = 0;
 let shootDir = 0;
 
 let gameOver = false;
+let levelCleared = false;
 
 // make floating donuts drop down the screen
 export function dropFloatingDonuts() {
@@ -62,9 +70,11 @@ export function dropFloatingDonuts() {
 }
 
 // game loop
+let animationFrameId;
+
 export function loop() {
   if (!gameOver) {
-    requestAnimationFrame(loop);
+    animationFrameId = requestAnimationFrame(loop);
     context.clearRect(0, 0, canvas.width, canvas.height);
     // move shooting arrow
     shootDeg = shootDeg + degToRad(2) * shootDir;
@@ -181,13 +191,75 @@ export function loop() {
       grid
     );
 
-    checkWinCondition();
+    checkLevelWin();
+  }
+}
+
+export function stopLoop() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null; // Reset the frame ID
   }
 }
 
 export function endGame() {
   displayLoseMessage();
 }
+
+// function checkLevelWin() {
+//   if (checkWinCondition()) {
+//     displayWinMessage();
+//     levelCleared = true;
+//   }
+// }
+
+function checkLevelWin() {
+  if (checkWinCondition()) {
+    if (gameState.currentLevel < levels.length - 1) displayWinMessage();
+
+    if (particles.length === 0) {
+      levelCleared = true;
+      levelReset();
+      stopLoop();
+      console.log("looped stopped");
+      // Proceed to the next level after a short delay
+      setTimeout(() => {
+        if (gameState.currentLevel < levels.length - 1) {
+          gameState.currentLevel++;
+          levelCleared = false;
+          startLevel(); // Start the next level
+        } else {
+          displayFinalWinMessage(); // Display a message when all levels are completed
+        }
+      }, 2000); // Delay to let the win message show
+    }
+  }
+
+  // if (checkWinCondition()) {
+  //   setTimeout(() => {
+  //     levelCleared = true;
+  //     levelReset();
+  //     stopLoop();
+  //     console.log("looped stopped");
+  //   }, 1000);
+  // }
+}
+
+// window.addEventListener("keydown", (event) => {
+//   if (event.key === "Enter") {
+//     if (!gameStarted) {
+//       gameStarted = true;
+//       startGame();
+//     } else if (levelCleared) {
+//       levelCleared = false; // Reset for the next level
+//       if (currentLevel < levels.length) {
+//         startGame();
+//       } else {
+//         displayFinalWinMessage();
+//       }
+//     }
+//   }
+// });
 
 // listen for keyboard events to move fire arrow
 document.addEventListener("keydown", (e) => {
@@ -197,11 +269,19 @@ document.addEventListener("keydown", (e) => {
     shootDir = 1;
   }
 
-  if (e.key === " " && curBubble.dx === 0 && curBubble.dy === 0 && !gameOver) {
+  if (
+    e.key === " " &&
+    curBubble.dx === 0 &&
+    curBubble.dy === 0 &&
+    !gameOver &&
+    !levelCleared
+  ) {
     //convert an angle to x/y
     curBubble.dx = Math.sin(shootDeg) * curBubble.speed;
     curBubble.dy = -Math.cos(shootDeg) * curBubble.speed;
   }
+
+  if (e.key === "Enter" && gameOver) window.location.reload();
 });
 
 // Listen for keyboard even to stop moving fire arrow when key released
