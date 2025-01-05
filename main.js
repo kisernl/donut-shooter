@@ -20,7 +20,7 @@ import { context, canvas } from "./modules/gameCanvas.js";
 // }
 
 export let gameState = {
-  currentLevel: 9,
+  currentLevel: 0,
 };
 
 export function startLevel() {
