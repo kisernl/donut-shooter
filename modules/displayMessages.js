@@ -21,7 +21,8 @@ export function displayWinMessage() {
 }
 
 export function displayFinalWinMessage() {
-  context.font = "125px Bubblegum Sans"; // Font size and type
+  context.save();
+  context.font = "90px Bubblegum Sans"; // Font size and type
   context.fillStyle = "#87418c"; // Text color
   context.textAlign = "center"; // Align the text to the center
   context.textBaseline = "middle"; // Vertically align text to the middle
@@ -36,7 +37,11 @@ export function displayFinalWinMessage() {
     centerX,
     centerY
   );
+  context.font = "75px Bubblegum Sans"; // Font size and type
   context.fillText(`more levels coming soon...`, centerX, centerY + 200);
+  context.font = "55px Bubblegum Sans"; // Font size and type
+  context.fillText(`press "Enter" to try again`, centerX, centerY + 400);
+  context.restore();
 }
 
 // Display "You Lose" message

@@ -13,8 +13,9 @@ import {
   degToRad,
   getRandomInt,
 } from "./utils.js";
-import { donuts } from "./donut.js";
+import { donuts, spriteProperties } from "./donut.js";
 import { dropFloatingDonuts } from "./gamePlay.js";
+import { context, canvas } from "./gameCanvas.js";
 
 // find closest bubble that collides with object
 export function getClosestBubble(obj, activeState = false) {
@@ -115,10 +116,79 @@ export function removeMatch(targetBubble) {
     }
   }
 
+  // if (matches.length >= 3) {
+  //   matches.forEach((bubble) => {
+  //     bubble.active = false;
+  //   });
+  // }
+
+  // Animate and then deactivate bubbles if there are enough matches
+
   if (matches.length >= 3) {
     matches.forEach((bubble) => {
+      bubble.animating = true; // Mark the bubble as animating
+      bubble.currentFrame = 0; // Start from the first frame
+      bubble.frameCounter = 0; // Counter to track frame updates
       bubble.active = false;
     });
+
+    const frameInterval = 3; // Number of animation loops per frame (lower is faster, higher is slower)
+
+    function animateMatches() {
+      let allFinished = true;
+
+      matches.forEach((bubble) => {
+        if (bubble.animating) {
+          // Clear the donut area before redrawing it to avoid remnants from the previous frame
+          context.save();
+          context.clearRect(
+            bubble.x - grid / 2, // X position of the donut
+            bubble.y - grid / 2, // Y position of the donut
+            grid, // Width of the area to clear
+            grid // Height of the area to clear
+          );
+          context.restore();
+          // Increment the frame only after a certain number of loops (frameInterval)
+          if (bubble.frameCounter >= frameInterval) {
+            bubble.currentFrame++; // Increment the current frame
+
+            if (bubble.currentFrame >= spriteProperties.framesPerDonut) {
+              bubble.animating = false; // Stop animating after the last frame
+            }
+
+            bubble.frameCounter = 0; // Reset the frame counter after increment
+          }
+
+          // Draw the current frame of the animation
+          context.drawImage(
+            bubble.img,
+            bubble.currentFrame * spriteProperties.frameWidth, // X position in sprite sheet
+            0, // Y position in sprite sheet
+            spriteProperties.frameWidth,
+            spriteProperties.frameHeight,
+            bubble.x - grid / 2,
+            bubble.y - grid / 2,
+            grid,
+            grid
+          );
+
+          bubble.frameCounter++; // Increment frame counter each animation loop
+        }
+      });
+
+      // Continue the animation loop if not all animations are finished
+      if (matches.some((bubble) => bubble.animating)) {
+        requestAnimationFrame(animateMatches);
+      }
+      // else {
+      //   // Mark bubbles as inactive once all animations are done
+      //   matches.forEach((bubble) => {
+      //     bubble.active = false;
+      //   });
+      // }
+    }
+
+    requestAnimationFrame(animateMatches);
   }
 }
 

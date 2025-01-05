@@ -1,8 +1,12 @@
 TODO
-* add screen to restart game at game over
-* add logic that starts new level when previous level is complete
+* add score logic and display to game
 
 DOING
+* animate popped donuts with sprite animation
 
 DONE
 ✅ add logic to freeze game at win or lose
+✅ add screen to restart game at game over
+✅ add logic that starts new level when previous level is complete
+✅ add logic to progress through levels
+✅ add 10 levels

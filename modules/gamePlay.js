@@ -118,12 +118,24 @@ export function loop() {
     // Draw bubbles in the `loop` function
     bubbles.forEach((bubble) => {
       if (bubble.active) {
+        // context.drawImage(
+        //   bubble.img,
+        //   bubble.x - grid / 2,
+        //   bubble.y - grid / 2,
+        //   grid,
+        //   grid
+        // );
+
         context.drawImage(
-          bubble.img,
-          bubble.x - grid / 2,
-          bubble.y - grid / 2,
-          grid,
-          grid
+          bubble.img, // The sprite sheet image for this bubble
+          0, // X position of the frame in the sprite sheet
+          0, // Y position of the frame in the sprite sheet
+          160, // Width of the frame in the sprite sheet
+          160, // Height of the frame in the sprite sheet
+          bubble.x - grid / 2, // X position on the canvas
+          bubble.y - grid / 2, // Y position on the canvas
+          grid, // Width on the canvas
+          grid // Height on the canvas
         );
       }
     });
@@ -133,6 +145,10 @@ export function loop() {
       if (particle.active) {
         context.drawImage(
           particle.img,
+          0, // X position of the frame in the sprite sheet
+          0, // Y position of the frame in the sprite sheet
+          160, // Width of the frame in the sprite sheet
+          160, // Height of the frame in the sprite sheet
           particle.x - grid / 2,
           particle.y - grid / 2,
           grid,
@@ -149,7 +165,7 @@ export function loop() {
         const closestBubble = getClosestBubble(curBubble);
         if (!closestBubble) {
           gameOver = true;
-          endGame();
+          displayLoseMessage();
         }
         if (closestBubble) {
           handleCollision(closestBubble);
@@ -185,6 +201,10 @@ export function loop() {
     // draw current bubble
     context.drawImage(
       curBubble.img,
+      0, // X position of the frame in the sprite sheet
+      0, // Y position of the frame in the sprite sheet
+      160, // Width of the frame in the sprite sheet
+      160, // Height of the frame in the sprite sheet
       curBubble.x - grid / 2,
       curBubble.y - grid / 2,
       grid,
@@ -202,9 +222,9 @@ export function stopLoop() {
   }
 }
 
-export function endGame() {
-  displayLoseMessage();
-}
+// export function endGame() {
+//   displayLoseMessage();
+// }
 
 // function checkLevelWin() {
 //   if (checkWinCondition()) {
@@ -215,7 +235,7 @@ export function endGame() {
 
 function checkLevelWin() {
   if (checkWinCondition()) {
-    if (gameState.currentLevel < levels.length - 1) displayWinMessage();
+    if (gameState.currentLevel < levels.length - 2) displayWinMessage();
 
     if (particles.length === 0) {
       levelCleared = true;
@@ -229,7 +249,8 @@ function checkLevelWin() {
           levelCleared = false;
           startLevel(); // Start the next level
         } else {
-          displayFinalWinMessage(); // Display a message when all levels are completed
+          displayFinalWinMessage();
+          gameOver = true; // Display a message when all levels are completed
         }
       }, 2000); // Delay to let the win message show
     }
